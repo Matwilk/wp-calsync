@@ -13,9 +13,9 @@
  * @package           Wp_Calsync
  *
  * @wordpress-plugin
- * Plugin Name:       Calendar sync
+ * Plugin Name:       Modern Apes gig importer
  * Plugin URI:        https://github.com/Matwilk/wp-calsync.git
- * Description:       This is a short description of what the plugin does. It's displayed in the WordPress admin area.
+ * Description:       Imports dates from the Modern Apes Google calendar into the site's gig dates.
  * Version:           1.0.0
  * Author:            Matthew Wilkinson
  * Author URI:        -

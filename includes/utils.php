@@ -61,6 +61,36 @@ function getExistingGigs() {
   return $dates;
 }
 
+function getTimes() {
+  return array(
+      "0" => '-',
+      "1" => '12am',
+      "2" => '1am',
+      "3" => '2am',
+      "4" => '3am',
+      "5" => '4am',
+      "6" => '5am',
+      "7" => '6am',
+      "8" => '7am',
+      "9" => '8am',
+      "10" => '9am',
+      "11" => '10am',
+      "12" => '11am',
+      "13" => '12pm',
+      "14" => '1pm',
+      "15" => '2pm',
+      "16" => '3pm',
+      "17" => '4pm',
+      "18" => '5pm',
+      "19" => '6pm',
+      "20" => '7pm',
+      "21" => '8pm',
+      "22" => '9pm',
+      "23" => '10pm',
+      "24" => '11pm'
+  );
+
+}
 
 //START THE LOOP TO LIST EVENTS
 //foreach ($events->getItems() as $event) {

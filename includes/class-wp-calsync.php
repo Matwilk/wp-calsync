@@ -235,11 +235,12 @@ class Wp_Calsync {
       $events = fetchcal();
       //print_r($dates);
 
-      $ques = "something";
+      echo "<h1>Gig dates</h1>";
+      echo "<p>Ensure the dates you want to add are selected.  If the Google calendar data doesn't already have the right Venue and Location set then edit manually before submitting the form.";
+      echo "<p>Any dates that have already have a date added are have been unselected - assumes that gig has already been added.";
       echo "<form action='".get_admin_url()."admin-post.php' method='post'>";
 
       echo "<input type='hidden' name='action' value='submit-form' />";
-      echo "<input type='hidden' name='hide' value='$ques' />";
 
       echo "<table>";
       echo "<tr id='r1'>";
@@ -253,7 +254,11 @@ class Wp_Calsync {
 //      foreach ($events as $event) {
 //        echo '<input type="hidden" name="dat-' . $id . '" value="' . 'xxx' . '"" />';
 //      }
+
+      $times = getTimes();
+
       $id = 0;
+
       foreach ($events as $event) {
         $eventDateStr = $event->start->dateTime;
         if(empty($eventDateStr))
@@ -268,35 +273,12 @@ class Wp_Calsync {
         // conver date format
         $ymd = explode('-', $eventDateStr);
         $eventDateStr = $ymd[2] . '-' . $ymd[1] . '-' . $ymd[0];
-        //echo $event->summary;
-        $time = '8pm';
-        $select = ' <select name="tim-' . $id . '">
-  <option value="0">-</option>
-  <option value="1">12am</option>
-  <option value="2">1am</option>
-  <option value="3">2am</option>
-  <option value="4">3am</option>
-  <option value="5">4am</option>
-  <option value="6">5am</option>
-  <option value="7">6am</option>
-  <option value="8">7am</option>
-  <option value="9">8am</option>
-  <option value="10">9am</option>
-  <option value="11">10am</option>
-  <option value="12">11am</option>
-  <option value="13">12pm</option>
-  <option value="14">1pm</option>
-  <option value="15">2pm</option>
-  <option value="16">3pm</option>
-  <option value="17">4pm</option>
-  <option value="18">5pm</option>
-  <option value="19">6pm</option>
-  <option value="20">7pm</option>
-  <option value="21" selected="selected">8pm</option>
-  <option value="22">9pm</option>
-  <option value="23">10pm</option>
-  <option value="24">11pm</option>
-</select> ';
+
+        $select = ' <select name="tim-' . $id . '">';
+        foreach ($times as $time => $tStr) {
+          $select = $select . '<option value="' . $time . '">' . $tStr . '</option>';
+        }
+        $select = $select . '</select>';
 
         echo '<input type="hidden" name="dat-' . $id . '" value="' . $eventDateStr . '"" />';
 
@@ -330,20 +312,52 @@ class Wp_Calsync {
     public function _handle_form_action(){
 
       //print_r($dates);
+      $times = getTimes();
 
-//      foreach($_POST as $key => $value) {
-//        //echo $key . ' ' . $value;
-//        if (substr($key, 0, 3) === 'chk') {
-//          $val = substr($key, 4);
-//          $date = $_POST['dat-' . $val];
-//          $time = $_POST['tim-' . $val];
-//          $venue = $_POST['ven-' . $val];
-//          $location = $_POST['loc-' . $val];
-//          echo '<div>';
-//          echo $val . ' ' . $date . ' ' . $time . ' ' . $venue . ' ' . $location;
-//          echo '</div>';
-//        }
-//      }
+      foreach($_POST as $key => $value) {
+        //echo $key . ' ' . $value;
+        if (substr($key, 0, 3) === 'chk') {
+          $val = substr($key, 4);
+          $parts = explode('-', $_POST['dat-' . $val]);
+          $date = $parts[1] . '-' . $parts[0] . '-' . $parts[2];
+          $time = $times[$_POST['tim-' . $val]];
+          $venue = $_POST['ven-' . $val];
+          $location = $_POST['loc-' . $val];
+          echo '<div>';
+          echo $val . ' ' . $date . ' ' . $time . ' ' . $venue . ' ' . $location;
+          echo '</div>';
+
+          if ($venue == '') {
+            $venue = 'TBC';
+          }
+
+          if ($location == '') {
+            $location = 'TBC';
+          }
+
+          $post_id = wp_insert_post(array (
+            'post_type' => 'show',
+            'post_title' => $venue,
+            //'post_content' => 'Show content',
+            'post_status' => 'publish',
+            'comment_status' => 'closed',   // if you prefer
+            'ping_status' => 'closed',      // if you prefer
+          ));
+
+          if ($post_id) {
+            // insert post meta
+            add_post_meta($post_id, '_wolf_show_venue', $venue);
+            add_post_meta($post_id, '_wolf_show_city', $location);
+            add_post_meta($post_id, '_wolf_show_date', $date);
+
+            if ($time != '-') {
+              add_post_meta($post_id, '_wolf_show_time', $time);
+            }
+          }
+        }
+      }
+
+      wp_redirect('edit.php?post_type=show');
 
 //      $post_id = wp_insert_post(array (
 //        'post_type' => 'show',
