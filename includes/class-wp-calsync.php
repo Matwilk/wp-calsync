@@ -13,7 +13,7 @@
  * @subpackage Wp_Calsync/includes
  */
 
-require plugin_dir_path( __FILE__ ) . '/fetchcal.php';
+require plugin_dir_path( __FILE__ ) . '/utils.php';
 
 /**
  * The core plugin class.
@@ -217,8 +217,23 @@ class Wp_Calsync {
     }
 
     public function calsync_page() {
+      // fetch existing gigs from WP database
+      $gigs = getExistingGigs();
+      $dates = array();
+
+      foreach($gigs as $gig) {
+//        echo '<div>';
+//        echo 'title = ' . $gig->post_title . 'date = ' . $gig->meta_value;
+//        echo '</div>';
+          $parts = explode('-', $gig->meta_value);
+          //echo $parts;
+          $date = $parts[1] . '-' . $parts[0] . '-' . $parts[2];
+        $dates[$date] = $date;
+      }
+
+      //echo $dates;
       $events = fetchcal();
-      print_r($events);
+      //print_r($dates);
 
       $ques = "something";
       echo "<form action='".get_admin_url()."admin-post.php' method='post'>";
@@ -256,36 +271,44 @@ class Wp_Calsync {
         //echo $event->summary;
         $time = '8pm';
         $select = ' <select name="tim-' . $id . '">
-  <option value="0">12am</option>
-  <option value="1">1am</option>
-  <option value="2">2am</option>
-  <option value="3">3am</option>
-  <option value="4">4am</option>
-  <option value="5">5am</option>
-  <option value="6">6am</option>
-  <option value="7">7am</option>
-  <option value="8">8am</option>
-  <option value="9">9am</option>
-  <option value="10">10am</option>
-  <option value="11">11am</option>
-  <option value="12">12pm</option>
-  <option value="13">1pm</option>
-  <option value="14">2pm</option>
-  <option value="15">3pm</option>
-  <option value="16">4pm</option>
-  <option value="17">5pm</option>
-  <option value="18">6pm</option>
-  <option value="19">7pm</option>
-  <option value="20" selected="selected">8pm</option>
-  <option value="21">9pm</option>
-  <option value="22">10pm</option>
-  <option value="23">11pm</option>
+  <option value="0">-</option>
+  <option value="1">12am</option>
+  <option value="2">1am</option>
+  <option value="3">2am</option>
+  <option value="4">3am</option>
+  <option value="5">4am</option>
+  <option value="6">5am</option>
+  <option value="7">6am</option>
+  <option value="8">7am</option>
+  <option value="9">8am</option>
+  <option value="10">9am</option>
+  <option value="11">10am</option>
+  <option value="12">11am</option>
+  <option value="13">12pm</option>
+  <option value="14">1pm</option>
+  <option value="15">2pm</option>
+  <option value="16">3pm</option>
+  <option value="17">4pm</option>
+  <option value="18">5pm</option>
+  <option value="19">6pm</option>
+  <option value="20">7pm</option>
+  <option value="21" selected="selected">8pm</option>
+  <option value="22">9pm</option>
+  <option value="23">10pm</option>
+  <option value="24">11pm</option>
 </select> ';
 
         echo '<input type="hidden" name="dat-' . $id . '" value="' . $eventDateStr . '"" />';
 
         echo "<tr>";
-        echo '<td><input type="checkbox" tabindex="-1" name="chk-' . $id . '">' . $eventDateStr . '</td>';
+
+        if (in_array($eventDateStr, $dates)) {
+          echo '<td><input type="checkbox" tabindex="-1" name="chk-' . $id . '">' . $eventDateStr . '</td>';
+        }
+        else {
+          echo '<td><input type="checkbox" tabindex="-1" name="chk-' . $id . '" checked>' . $eventDateStr . '</td>';
+        }
+
         //echo "<td><b>xxx</b></td>";
         echo '<td>' . $select . '</td>';
         //echo '<td><input type="text" name="tim-' . $id . '" size="10" maxlength="4" value="' . $time . '" ></td>';
@@ -301,24 +324,26 @@ class Wp_Calsync {
       echo "<input type='submit' value='Import Dates' />";
 
       echo "</form>";
+
     }
 
     public function _handle_form_action(){
 
-      //print_r($_POST);
+      //print_r($dates);
 
-      foreach($_POST as $key => $value) {
-        //echo $key . ' ' . $value;
-        if (substr($key, 0, 3) === 'chk') {
-          $val = substr($key, 4);
-          $date = $_POST['dat-' . $val];
-          $venue = $_POST['ven-' . $val];
-          $location = $_POST['loc-' . $val];
-          echo '<div>';
-          echo $val . ' ' . $date . ' ' . $venue . ' ' . $location;
-          echo '</div>';
-        }
-      }
+//      foreach($_POST as $key => $value) {
+//        //echo $key . ' ' . $value;
+//        if (substr($key, 0, 3) === 'chk') {
+//          $val = substr($key, 4);
+//          $date = $_POST['dat-' . $val];
+//          $time = $_POST['tim-' . $val];
+//          $venue = $_POST['ven-' . $val];
+//          $location = $_POST['loc-' . $val];
+//          echo '<div>';
+//          echo $val . ' ' . $date . ' ' . $time . ' ' . $venue . ' ' . $location;
+//          echo '</div>';
+//        }
+//      }
 
 //      $post_id = wp_insert_post(array (
 //        'post_type' => 'show',
